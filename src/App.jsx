@@ -208,3 +208,103 @@ const App = () => {
 };
 
 export default App;
+// Loading screen
+  if (!price && isRunning) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-[#020617]">
+        <div className="text-center">
+          <Activity className="animate-pulse mx-auto mb-6 text-blue-500" size={64} />
+          <p className="text-slate-400 text-lg font-black">Connecting to Binance...</p>
+          <p className="text-slate-600 text-sm mt-2">Loading Sentinel V6.6</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`h-screen w-screen flex flex-col overflow-hidden ${isDark ? 'bg-[#020617] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
+      
+      {/* HEADER */}
+      <div className={`p-4 px-6 border-b flex justify-between items-center ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+        <div className="flex items-center gap-2">
+          <Activity size={16} className="text-blue-500" />
+          <span className="text-[10px] font-black uppercase tracking-[0.3em]">Sentinel V6.6</span>
+          <span className="ml-2 text-[8px] font-black bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded-full border border-blue-500/20">SESSION ACTIVE</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <button onClick={() => setIsDark(!isDark)}>{isDark ? <Sun size={16}/> : <Moon size={16}/>}</button>
+          <span className="text-[10px] font-black tabular-nums bg-slate-800/50 px-3 py-1 rounded-full">{timeLeft.min}:{timeLeft.sec.toString().padStart(2,'0')}</span>
+        </div>
+      </div>
+
+      {/* DND FEED */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-60 max-w-lg mx-auto w-full">
+        {layoutOrder.map((id, index) => (
+          <div 
+            key={id} 
+            draggable 
+            onDragStart={(e) => onDragStart(e, index)} 
+            onDragOver={(e) => onDragOver(e, index)} 
+            onDragEnd={onDragEnd}
+            className={`relative transition-all duration-200 ${draggedItemIdx === index ? 'opacity-20 scale-95' : 'opacity-100'}`}
+          >
+            <div className="absolute left-0 top-0 bottom-0 w-10 flex items-center justify-center opacity-10 cursor-grab active:cursor-grabbing hover:opacity-100 transition-opacity">
+              <GripVertical size={18}/>
+            </div>
+            {renderModule(id)}
+          </div>
+        ))}
+      </div>
+
+      {/* BOTTOM FLOAT NOTIFY */}
+      {floatNotify && (
+        <div className="fixed bottom-32 left-4 right-4 z-[500] animate-in slide-in-from-bottom duration-500">
+          <div onClick={() => { setSelectedMsg(floatNotify); setFloatNotify(null); }} 
+               className="bg-blue-600 p-4 rounded-2xl shadow-2xl flex items-center gap-3 border border-blue-400 text-white cursor-pointer">
+            <Bell size={18} className="animate-pulse" />
+            <div className="flex-1 truncate">
+              <span className="text-[8px] font-black uppercase opacity-60 block">Institutional Intel</span>
+              <p className="text-xs font-black truncate">{floatNotify.snippet}</p>
+            </div>
+            <ChevronRight size={16} />
+          </div>
+        </div>
+      )}
+
+      {/* FOOTER */}
+      <div className={`fixed bottom-0 left-0 w-full p-8 backdrop-blur-xl border-t flex justify-center items-center gap-10 z-[400] ${isDark ? 'bg-slate-950/80 border-slate-800' : 'bg-white/80 border-slate-200'}`}>
+        <button onClick={() => setIsRunning(!isRunning)} className={`w-16 h-16 rounded-full flex items-center justify-center border-2 transition-all ${isRunning ? 'bg-blue-600 border-blue-400 shadow-[0_0_30px_rgba(37,99,235,0.4)]' : 'bg-slate-900 border-slate-800'}`}>
+          <Zap size={24} className={isRunning ? "text-white fill-white" : "text-slate-600"} />
+        </button>
+        <button onClick={() => setIsMailOpen(true)} className="w-12 h-12 rounded-2xl border border-slate-800 bg-slate-900/40 flex items-center justify-center relative">
+          <Mail size={20} className={mailBox.length > 0 ? "text-blue-500" : "text-slate-500"} />
+          {isAiLoading && <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full animate-ping" />}
+        </button>
+        <div className="w-12 h-12 rounded-2xl border border-slate-800 bg-slate-900/40 flex items-center justify-center opacity-30"><CheckCircle2 size={20} /></div>
+      </div>
+
+      {/* MODAL */}
+      {(selectedMsg || isMailOpen) && (
+        <div className="fixed inset-0 z-[1000] bg-black/95 flex items-center justify-center p-6">
+          <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-[3rem] flex flex-col max-h-[80vh]">
+            <div className="p-8 border-b border-slate-800 flex justify-between">
+              <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">Archive</span>
+              <button onClick={() => {setIsMailOpen(false); setSelectedMsg(null);}}><X/></button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-8 space-y-4">
+              {isMailOpen ? mailBox.map(m => (
+                <div key={m.id} onClick={() => {setSelectedMsg(m); setIsMailOpen(false);}} 
+                     className="p-4 bg-slate-800/40 rounded-2xl border border-slate-800 cursor-pointer">
+                  <span className="text-[8px] font-black text-blue-400 mb-1 block">{m.time}</span>
+                  <p className="text-xs font-black">{m.snippet}</p>
+                </div>
+              )) : <div className="text-sm font-black text-slate-200 leading-relaxed whitespace-pre-line">{selectedMsg.text}</div>}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default App;
